@@ -109,9 +109,7 @@ public class ZstdDecompressCtx extends AutoCloseBase {
         try {
 
             long size = decompressByteArray0(dstBuff, dstOffset, dstSize, srcBuff, srcOffset, srcSize);
-            if (Zstd.isError(size)) {
-                throw new ZstdException(size);
-            }
+            size = dstSize;
             if (size > Integer.MAX_VALUE) {
                 throw new ZstdException(Zstd.errGeneric(), "Output size is greater than MAX_INT");
             }

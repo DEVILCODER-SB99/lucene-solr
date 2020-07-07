@@ -158,7 +158,7 @@ public final class Lucene50StoredFieldsFormat extends StoredFieldsFormat {
       case NO_COMPRESSION:
         return new CompressingStoredFieldsFormat("Lucene50StoredFieldsNOData", CompressionMode.NO_COMPRESSION, 61440, 512, 10);
       case ZSTD_COMPRESSION:
-        return new CompressingStoredFieldsFormat("Lucene50StoredFieldszstdData", CompressionMode.ZSTD_COMPRESSION, 61440, 512, 10);
+        return new CompressingStoredFieldsFormat("Lucene50StoredFieldszstdData", CompressionMode.ZSTD_COMPRESSION, 1<<28, 512, 10);
       default: throw new AssertionError();
     }
   }

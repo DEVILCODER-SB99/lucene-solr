@@ -122,12 +122,12 @@ public abstract class CompressionMode {
 
     @Override
     public Compressor newCompressor() {
-      return new noCompressor();
+      return new NoCompressor();
     }
 
     @Override
     public Decompressor newDecompressor() {
-      return new noDecompressor();
+      return new NoDecompressor();
     }
 
     @Override
@@ -144,12 +144,12 @@ public abstract class CompressionMode {
       // notes:
       // 3 is the highest level that doesn't have lazy match evaluation
       // 6 is the default, higher than that is just a waste of cpu
-      return new zstdCompressor(3);
+      return new ZstdCompressor(3);
     }
 
     @Override
     public Decompressor newDecompressor() {
-      return new zstdDecompressor();
+      return new ZstdDecompressor();
     }
 
     @Override
@@ -196,11 +196,11 @@ public abstract class CompressionMode {
 
   };
 
-  private static final class noDecompressor extends Decompressor {
+  private static final class NoDecompressor extends Decompressor {
 
     byte[] compressed;
 
-    noDecompressor() {
+    NoDecompressor() {
       compressed = new byte[100000];
     }
     @Override
@@ -250,7 +250,7 @@ public abstract class CompressionMode {
     }
   }
 
-  private static final class noCompressor extends Compressor {
+  private static final class NoCompressor extends Compressor {
 
 
     @Override
@@ -341,11 +341,11 @@ public abstract class CompressionMode {
     }
 
   }
-  private static final class zstdDecompressor extends Decompressor {
+  private static final class ZstdDecompressor extends Decompressor {
 
     byte[] compressed;
 
-    zstdDecompressor() {
+    ZstdDecompressor() {
       compressed = new byte[0];
     }
 
@@ -386,7 +386,7 @@ public abstract class CompressionMode {
 
     @Override
     public Decompressor clone() {
-      return new zstdDecompressor();
+      return new ZstdDecompressor();
     }
 
   }
@@ -440,14 +440,14 @@ public abstract class CompressionMode {
     }
 
   }
-  private static class zstdCompressor extends Compressor {
+  private static class ZstdCompressor extends Compressor {
 
     Zstd compressor = new Zstd();
     byte[] compressed;
     boolean closed;
     int level;
 
-    zstdCompressor(int level) {
+    ZstdCompressor(int level) {
       compressed = new byte[0];
       this.level = level;
     }
