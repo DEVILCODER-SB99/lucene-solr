@@ -30,6 +30,7 @@
   <property name="moman.url" value="https://bitbucket.org/jpbarrette/moman/get/${moman.commit-hash}.zip" />
 
   <path id="classpath"/>
+
   
   <!-- if we run with Java 9+, we refer to the java9 classes directory and insert this before the main classpath (to "emulate" a MR-JAR): -->
   <condition property="-test.classpath.java9.addon" value="${build.dir}/classes/java9" else="${build.dir}/classes/java">
@@ -50,6 +51,10 @@
 
   <path id="junit.classpath">
     <path refid="test.classpath"/>
+  </path>
+
+  <path id="classpath">
+    <fileset dir="lib" includes="**/*.jar"/>
   </path>
 
   <target name="test-core" depends="common.test"/>

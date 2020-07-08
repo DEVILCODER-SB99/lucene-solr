@@ -90,6 +90,8 @@ public final class CompressingStoredFieldsReader extends StoredFieldsReader {
   private final long numChunks; // number of compressed blocks written
   private final long numDirtyChunks; // number of incomplete compressed blocks written
   private boolean closed;
+  private long deCompressionTime;
+
 
   // used by clone
   private CompressingStoredFieldsReader(CompressingStoredFieldsReader reader, boolean merging) {
@@ -477,14 +479,18 @@ public final class CompressingStoredFieldsReader extends StoredFieldsReader {
           bytes.offset = bytes.length = 0;
           for (int decompressed = 0; decompressed < totalLength; ) {
             final int toDecompress = Math.min(totalLength - decompressed, chunkSize);
+            long start = System.currentTimeMillis();
             decompressor.decompress(fieldsStream, toDecompress, 0, toDecompress, spare);
+            deCompressionTime+=System.currentTimeMillis()-start;
             bytes.bytes = ArrayUtil.grow(bytes.bytes, bytes.length + spare.length);
             System.arraycopy(spare.bytes, spare.offset, bytes.bytes, bytes.length, spare.length);
             bytes.length += spare.length;
             decompressed += toDecompress;
           }
         } else {
+          long start = System.currentTimeMillis();
           decompressor.decompress(fieldsStream, totalLength, 0, totalLength, bytes);
+          deCompressionTime+=System.currentTimeMillis()-start;
         }
         if (bytes.length != totalLength) {
           throw new CorruptIndexException("Corrupted: expected chunk size = " + totalLength + ", got " + bytes.length, fieldsStream);
@@ -516,7 +522,9 @@ public final class CompressingStoredFieldsReader extends StoredFieldsReader {
         documentInput = new ByteArrayDataInput(bytes.bytes, bytes.offset + offset, length);
       } else if (sliced) {
         fieldsStream.seek(startPointer);
+        long start = System.currentTimeMillis();
         decompressor.decompress(fieldsStream, chunkSize, offset, Math.min(length, chunkSize - offset), bytes);
+        deCompressionTime+=System.currentTimeMillis()-start;
         documentInput = new DataInput() {
 
           int decompressed = bytes.length;
@@ -527,7 +535,9 @@ public final class CompressingStoredFieldsReader extends StoredFieldsReader {
               throw new EOFException();
             }
             final int toDecompress = Math.min(length - decompressed, chunkSize);
+            long start = System.currentTimeMillis();
             decompressor.decompress(fieldsStream, toDecompress, 0, toDecompress, bytes);
+            deCompressionTime+=System.currentTimeMillis()-start;
             decompressed += toDecompress;
           }
 
@@ -556,7 +566,9 @@ public final class CompressingStoredFieldsReader extends StoredFieldsReader {
         };
       } else {
         fieldsStream.seek(startPointer);
+        long start = System.currentTimeMillis();
         decompressor.decompress(fieldsStream, totalLength, offset, length, bytes);
+        deCompressionTime+=System.currentTimeMillis()-start;
         assert bytes.length == length;
         documentInput = new ByteArrayDataInput(bytes.bytes, bytes.offset, bytes.length);
       }
@@ -603,6 +615,10 @@ public final class CompressingStoredFieldsReader extends StoredFieldsReader {
           return;
       }
     }
+  }
+
+  public long getDeCompressionTime(){
+    return deCompressionTime;
   }
 
   @Override

@@ -78,6 +78,7 @@ public final class CompressingStoredFieldsWriter extends StoredFieldsWriter {
   private final String segment;
   private FieldsIndexWriter indexWriter;
   private IndexOutput fieldsStream;
+  private long compressionTime;
 
   private Compressor compressor;
   private final CompressionMode compressionMode;
@@ -226,10 +227,14 @@ public final class CompressingStoredFieldsWriter extends StoredFieldsWriter {
     if (sliced) {
       // big chunk, slice it
       for (int compressed = 0; compressed < bufferedDocs.getPosition(); compressed += chunkSize) {
+        long start = System.currentTimeMillis();
         compressor.compress(bufferedDocs.getBytes(), compressed, Math.min(chunkSize, bufferedDocs.getPosition() - compressed), fieldsStream);
+        compressionTime+=System.currentTimeMillis()-start;
       }
     } else {
+      long start = System.currentTimeMillis();
       compressor.compress(bufferedDocs.getBytes(), 0, bufferedDocs.getPosition(), fieldsStream);
+      compressionTime+=System.currentTimeMillis()-start;
     }
 
     // reset
@@ -237,6 +242,10 @@ public final class CompressingStoredFieldsWriter extends StoredFieldsWriter {
     numBufferedDocs = 0;
     bufferedDocs.reset();
     numChunks++;
+  }
+
+  public long getCompressionTime(){
+    return compressionTime;
   }
   
   @Override
